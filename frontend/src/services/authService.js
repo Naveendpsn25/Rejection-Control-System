@@ -4,6 +4,7 @@ import {
     setRefreshToken,
 } from "../utils/token";
 
+// import Cookies from "js-cookie";
 
 export const login = async (data) => {
     const response = await fetch(`${API_BASE_URL}/auth/login/`, {
@@ -125,7 +126,13 @@ export async function createRejection(data) {
     const result = await response.json();
 
     if (!response.ok) {
-        throw result;
+
+        throw new Error(
+            result.part_number?.[0] ||
+            result.detail ||
+            "Something went wrong."
+        );
+
     }
 
     return result;
@@ -182,3 +189,118 @@ export const getDefectTypes = async () => {
 
     return await response.json();
 };
+
+
+export const getRejections = async () => {
+    const response = await fetch(
+        `${API_BASE_URL}/rejections/`,
+        {
+            headers: {
+                Authorization: `Bearer ${getAccessToken()}`,
+            },
+        }
+    );
+
+    return await response.json();
+};
+
+
+export const getCAPAs = async () => {
+    const response = await fetch(
+        `${API_BASE_URL}/capa/`,
+        {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${getAccessToken()}`,
+            },
+        }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(result.detail || "Failed to fetch CAPAs");
+    }
+
+    return result;
+};
+
+
+export const getCAPACount = async () => {
+
+    const response = await fetch(
+        `${API_BASE_URL}/capa/count/`,
+        {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${getAccessToken()}`,
+            },
+        }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(result.detail || "Failed to fetch CAPA count");
+    }
+
+    return result;
+
+};
+
+
+
+export const submitCAPA = async (id, formData) => {
+
+    const response = await fetch(
+        `${API_BASE_URL}/capa/${id}/`,
+        {
+            method: "PATCH",
+
+            headers: {
+                Authorization: `Bearer ${getAccessToken()}`,
+            },
+
+            body: formData,
+        }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(result.detail || "Failed to submit CAPA");
+    }
+
+    return result;
+};
+
+
+
+export const approveRejectCAPA = async (id, action) => {
+
+    const response = await fetch(
+        `${API_BASE_URL}/capa/${id}/approval/`,
+        {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${getAccessToken()}`,
+            },
+            body: JSON.stringify({
+                action,
+            }),
+        }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            result.detail || "Failed to update CAPA."
+        );
+    }
+
+    return result;
+};
+
+

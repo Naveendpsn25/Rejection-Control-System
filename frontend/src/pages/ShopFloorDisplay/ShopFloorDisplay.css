@@ -1,0 +1,15 @@
+.shop-floor {
+    min-height: 100vh;
+    background: #0f172a;
+    padding: 24px;
+}
+
+.shop-title {
+    color: #ffffff;
+    font-weight: 700 !important;
+}
+
+.shop-subtitle {
+    color: #94a3b8;
+    margin-top: 8px !important;
+}

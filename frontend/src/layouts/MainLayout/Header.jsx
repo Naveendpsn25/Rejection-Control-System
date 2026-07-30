@@ -1,9 +1,15 @@
+import { useNavigate } from "react-router-dom";
+
+import {
+    clearTokens,
+} from "../../utils/token";
+
 import {
     AppBar,
     Toolbar,
     Typography,
     Box,
-    IconButton,
+    IconButton,Button
 } from "@mui/material";
 
 import NotificationsIcon from "@mui/icons-material/Notifications";
@@ -12,7 +18,15 @@ import useAuthStore from "../../store/authStore";
 
 const Header = () => {
     const { user } = useAuthStore();
+    const navigate = useNavigate();
 
+    const handleLogout = () => {
+
+        clearTokens();
+
+        navigate("/");
+
+    };
     return (
         <AppBar
             position="static"
@@ -102,9 +116,9 @@ const Header = () => {
                             Logged in as
                         </Typography>
 
-                        <Box
+                        {/* <Box
                             sx={{
-                                backgroundColor: "#fff",
+                                // backgroundColor: "#fff",
                                 px: 2.5,
                                 py: 1,
                                 borderRadius: 1,
@@ -112,19 +126,26 @@ const Header = () => {
                                 minWidth: 150,
                                 textAlign: "center",
                             }}
-                        >
+                        > */}
                             <Typography
                                 sx={{
                                     fontWeight: 700,
                                     fontSize: 15,
-                                    color: "#1f2937",
+                                    color: "#cfd5dc",
                                     textTransform: "uppercase",
                                 }}
                             >
                                 {user?.role}
                             </Typography>
-                        </Box>
+                        {/* </Box> */}
                     </Box>
+                     <Button
+                        variant="contained"
+                        color="error"
+                        onClick={handleLogout}
+                    >
+                        Logout
+                    </Button>
                 </Box>
             </Toolbar>
         </AppBar>

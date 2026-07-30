@@ -1,20 +1,13 @@
-import {
-  Box,
-  Paper,
-  Typography,
-  Grid,
-  TextField,
-  MenuItem,
-  Button,
-Alert,
-} from "@mui/material";
+import {Box,Paper,Typography,Grid,TextField,MenuItem,Button,Alert} from "@mui/material";
+import {Table,TableBody,TableCell,TableContainer,TableHead,TableRow,Chip} from "@mui/material";
 
-
-import {getDepartments,getDefectTypes} from "../../services/authService";
+// import {getDepartments,getDefectTypes} from "../../services/authService";
 
 import { useState,useEffect } from "react";
 
-import { createRejection } from "../../services/authService";
+// import { createRejection } from "../../services/authService";
+
+import {createRejection,getDepartments,getDefectTypes,getRejections,} from "../../services/authService";
 const Entry = () => {
 
     const today = new Date().toISOString().split("T")[0];
@@ -29,7 +22,7 @@ const Entry = () => {
     defectType: "",
     remarks: "",
 });
-
+    
     const rejection =
         formData.producedQty && formData.rejectedQty
             ? (
@@ -62,7 +55,12 @@ const Entry = () => {
 
     try {
         const result = await createRejection(formData);
-        console.log(result);
+        // console.log(result);
+        await loadRecentEntries();
+
+        window.dispatchEvent(
+            new Event("capaUpdated")
+        );
 
         setAlert({
             severity: result.severity,
@@ -75,10 +73,11 @@ const Entry = () => {
 
         setAlert({
             severity: "error",
-            message: "Something went wrong. Please try again.",
+            message: error.message,
         });
 
         console.error(error);
+
     }
 };
 
@@ -96,14 +95,27 @@ const Entry = () => {
     // const [operations, setOperations] = useState([]);
     const [defectTypes, setDefectTypes] = useState([]);
 
+   const [entries, setEntries] = useState([]);
+
+    const loadRecentEntries = async () => {
+
+        const data = await getRejections();
+
+        setEntries(data);
+
+    };
+
     useEffect(() => {
 
     const loadMasters = async () => {
     const departmentsData = await getDepartments();
     const defectTypesData = await getDefectTypes();
+    // const rejectionsData = await getRejections();
 
     setDepartments(departmentsData);
     setDefectTypes(defectTypesData);
+    // setEntries(rejectionsData);
+    await loadRecentEntries();
 
     setFormData((prev) => ({
         ...prev,
@@ -402,6 +414,119 @@ const Entry = () => {
     </Button>
 </Box>
       </Paper>
+
+
+      <Paper
+            elevation={1}
+            sx={{
+                maxWidth: 1250,
+                mx: "auto",
+                mt: 3,
+                p: 3,
+                borderRadius: 3,
+            }}
+        >
+            <Typography
+                variant="h6"
+                sx={{
+                    fontWeight: 700,
+                    mb: 2,
+                }}
+            >
+                Recent Entries
+            </Typography>
+
+                <TableContainer>
+                    <Table>
+
+                        <TableHead>
+                            <TableRow>
+                                <TableCell><strong>Date</strong></TableCell>
+                                <TableCell><strong>Dept</strong></TableCell>
+                                <TableCell><strong>Part</strong></TableCell>
+                                <TableCell><strong>Defect</strong></TableCell>
+                                <TableCell align="right"><strong>Prod</strong></TableCell>
+                                <TableCell align="right"><strong>Rej</strong></TableCell>
+                                <TableCell align="right"><strong>%</strong></TableCell>
+                                <TableCell><strong>Status</strong></TableCell>
+                            </TableRow>
+                        </TableHead>
+
+                        <TableBody>
+                        {entries.map((entry) => (
+                            <TableRow key={entry.id}>
+
+                                <TableCell>
+                                    {entry.entry_date}
+                                </TableCell>
+
+                                <TableCell>
+                                    {entry.department_name}
+                                </TableCell>
+
+                                <TableCell>
+                                    {entry.part_number}
+                                </TableCell>
+
+                                <TableCell>
+                                    {entry.defect_name}
+                                </TableCell>
+
+                                <TableCell align="right">
+                                    {entry.produced_quantity}
+                                </TableCell>
+
+                                <TableCell align="right">
+                                    {entry.rejected_quantity}
+                                </TableCell>
+
+                                <TableCell
+                                    align="right"
+                                    sx={{
+                                        fontWeight: 700,
+                                        color:
+                                            Number(entry.rejection_percentage) > 3
+                                                ? "#d32f2f"
+                                                : "#2e7d32",
+                                    }}
+                                >
+                                    {entry.rejection_percentage}%
+                                </TableCell>
+
+                                <TableCell>
+
+                                {entry.status === "PENDING_SUPERVISOR" && (
+                                    <Chip
+                                        label="PENDING: Supervisor"
+                                        color="warning"
+                                    />
+                                )}
+
+                                {entry.status === "APPROVED" && (
+                                    <Chip
+                                        label="APPROVED BY SUPERVISOR"
+                                        color="success"
+                                    />
+                                )}
+
+                                {entry.status === "REJECTED" && (
+                                    <Chip
+                                        label="REJECTED BY SUPERVISOR"
+                                        color="error"
+                                    />
+                                )}
+
+                            </TableCell>
+                               
+
+                            </TableRow>
+                        ))}
+                    </TableBody>
+
+                    </Table>
+</TableContainer>
+
+        </Paper>
     </Box>
   );
 };

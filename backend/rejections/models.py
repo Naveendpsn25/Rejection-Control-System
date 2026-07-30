@@ -122,9 +122,31 @@ class Shift(models.TextChoices):
 
 class RejectionStatus(models.TextChoices):
     DRAFT = "DRAFT", "Draft"
-    IN_APPROVAL = "IN_APPROVAL", "In Approval"
+
+    PENDING_SUPERVISOR = (
+        "PENDING_SUPERVISOR",
+        "Pending Supervisor",
+    )
+
+    PENDING_HOD = (
+        "PENDING_HOD",
+        "Pending HOD",
+    )
+
+    PENDING_QUALITY_HEAD = (
+        "PENDING_QUALITY_HEAD",
+        "Pending Quality Head",
+    )
+
+    PENDING_PLANT_HEAD = (
+        "PENDING_PLANT_HEAD",
+        "Pending Plant Head",
+    )
+
     APPROVED = "APPROVED", "Approved"
+
     REJECTED = "REJECTED", "Rejected"
+
     CLOSED = "CLOSED", "Closed"
 
 

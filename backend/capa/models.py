@@ -10,6 +10,10 @@ class CAPAStatus(models.TextChoices):
     COMPLETED = "COMPLETED", "Completed"
     OVERDUE = "OVERDUE", "Overdue"
 
+class ApprovalStatus(models.TextChoices):
+    PENDING = "PENDING", "Pending"
+    APPROVED = "APPROVED", "Approved"
+    REJECTED = "REJECTED", "Rejected"
 
 class CAPA(BaseModel):
     title = models.CharField(
@@ -45,6 +49,31 @@ class CAPA(BaseModel):
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         related_name="assigned_capas",
+    )
+
+    report = models.FileField(
+        upload_to="capa_reports/",
+        null=True,
+        blank=True,
+    )
+
+    approval_status = models.CharField(
+        max_length=20,
+        choices=ApprovalStatus.choices,
+        default=ApprovalStatus.PENDING,
+    )
+
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="approved_capas",
+    )
+
+    approved_at = models.DateTimeField(
+        null=True,
+        blank=True,
     )
 
     class Meta:

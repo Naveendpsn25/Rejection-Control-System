@@ -10,6 +10,16 @@ from .models import RejectionEntry
 
 class RejectionEntrySerializer(serializers.ModelSerializer):
 
+    department_name = serializers.CharField(
+        source="department.department_name",
+        read_only=True,
+    )
+
+    defect_name = serializers.CharField(
+        source="defect_type.defect_name",
+        read_only=True,
+    )
+
     class Meta:
         model = RejectionEntry
 
@@ -17,12 +27,19 @@ class RejectionEntrySerializer(serializers.ModelSerializer):
             "id",
             "slip_number",
             "entry_date",
+
             "department",
+            "department_name",
+
             "part_number",
             "operation",
+
             "produced_quantity",
             "rejected_quantity",
+
             "defect_type",
+            "defect_name",
+
             "remarks",
             "rejection_percentage",
             "status",
@@ -32,7 +49,26 @@ class RejectionEntrySerializer(serializers.ModelSerializer):
             "slip_number",
             "rejection_percentage",
             "status",
+            "department_name",
+            "defect_name",
         ]
+
+    def validate(self, attrs):
+
+        part_number = attrs.get("part_number")
+
+        if RejectionEntry.objects.filter(
+            part_number=part_number
+        ).exists():
+
+            raise serializers.ValidationError(
+                {
+                    "part_number":
+                        "This part number already has a rejection entry."
+                }
+            )
+
+        return attrs
 
 
 from .models import Department

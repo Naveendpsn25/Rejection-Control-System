@@ -5,15 +5,22 @@ from rest_framework.generics import ListCreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .models import RejectionEntry
+from .models import RejectionEntry,RejectionStatus
 from .serializers import RejectionEntrySerializer
 
+from datetime import datetime, timedelta
+
+from django.utils import timezone
+
+from capa.models import CAPA
 
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .serializers import RejectionEntrySerializer
+
+from accounts.models import UserRole
 
 
 from rest_framework.permissions import IsAuthenticated
@@ -24,6 +31,29 @@ from datetime import datetime
 class RejectionEntryListCreateAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
+
+
+    def get(self, request):
+
+        if request.user.role == UserRole.OPERATOR:
+
+            queryset = RejectionEntry.objects.filter(
+                created_by=request.user
+            ).order_by("-created_at")
+
+        else:
+
+            queryset = RejectionEntry.objects.all().order_by(
+                "-created_at"
+            )
+
+        serializer = RejectionEntrySerializer(
+            queryset,
+            many=True,
+        )
+
+        return Response(serializer.data)
+    
 
     def post(self, request):
         slip_number = f"RS-{datetime.now().strftime('%Y%m%d%H%M%S')}"
@@ -37,6 +67,29 @@ class RejectionEntryListCreateAPIView(APIView):
             )
 
             if rejection.rejection_percentage > 3:
+
+                rejection.status = RejectionStatus.PENDING_SUPERVISOR
+
+            else:
+
+                rejection.status = RejectionStatus.PENDING_SUPERVISOR
+
+            rejection.save()
+
+            if rejection.rejection_percentage > 3:
+
+                CAPA.objects.create(
+                    title=f"CAPA - {rejection.part_number}",
+                    rejection_entry=rejection,
+                    assigned_to=request.user,
+
+                    root_cause="",
+                    corrective_action="",
+                    preventive_action="",
+
+                    target_date=timezone.now().date() + timedelta(days=3),
+                )
+
                 return Response(
                     {
                         "success": True,
