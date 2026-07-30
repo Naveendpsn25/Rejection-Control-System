@@ -9,6 +9,8 @@ urlpatterns = [
     path("api/rejections/",include("rejections.urls"),),
     path("api/capa/", include("capa.urls")),
     path("api/dashboard/", include("dashboard.urls")),
+    path( "api/settings/", include("settings_app.urls"),),
+     path("api/accounts/",include("accounts.urls"),),
 ]
 
 if settings.DEBUG:

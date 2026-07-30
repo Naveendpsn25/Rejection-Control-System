@@ -5,21 +5,12 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-from .views import LoginView, CurrentUserView, LogoutView
+from .views import LoginView, CurrentUserView, LogoutView,RegisterView
 
 urlpatterns = [
+    path("register/",RegisterView.as_view(),),
     path("login/", LoginView.as_view(), name="login"),
     path("me/", CurrentUserView.as_view(), name="current-user"),
-
-    path(
-        "token/refresh/",
-        TokenRefreshView.as_view(),
-        name="token-refresh",
-    ),
-
-    path(
-        "logout/",
-        LogoutView.as_view(),
-        name="logout",
-    ),
+    path("token/refresh/",TokenRefreshView.as_view(),name="token-refresh",),
+    path("logout/",LogoutView.as_view(),name="logout",),
 ]

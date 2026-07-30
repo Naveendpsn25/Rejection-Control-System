@@ -87,7 +87,7 @@ class CAPAApprovalAPIView(APIView):
 
         if action == "APPROVE":
 
-            capa.approval_status = ApprovalStatus.APPROVED
+            capa.approval_status = ApprovalStatus.SUPERVISOR_APPROVED
 
             capa.rejection_entry.status = RejectionStatus.APPROVED
             capa.rejection_entry.save()
@@ -100,12 +100,22 @@ class CAPAApprovalAPIView(APIView):
             capa.rejection_entry.save()
 
         if action == "APPROVE":
-            capa.approval_status = ApprovalStatus.APPROVED
+
+            capa.approval_status = ApprovalStatus.SUPERVISOR_APPROVED
+
             capa.rejection_entry.status = RejectionStatus.APPROVED
 
         else:
+
             capa.approval_status = ApprovalStatus.REJECTED
+
             capa.rejection_entry.status = RejectionStatus.REJECTED
+
+        capa.approved_by = request.user
+        capa.approved_at = timezone.now()
+
+        capa.save()
+        capa.rejection_entry.save()
 
         capa.approved_by = request.user
         capa.approved_at = timezone.now()
@@ -122,3 +132,103 @@ class CAPAApprovalAPIView(APIView):
                 "message": f"CAPA {action.lower()}d successfully."
             }
         )
+
+
+
+class PlantHeadCAPAApprovalAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+
+        if request.user.role != UserRole.PLANT_HEAD:
+            return Response(
+                {
+                    "detail": "Only Plant Head can approve CAPA."
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = CAPAApprovalSerializer(data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+
+        capa = get_object_or_404(
+            CAPA,
+            pk=pk,
+        )
+
+        action = serializer.validated_data["action"]
+
+        if capa.approval_status != ApprovalStatus.SUPERVISOR_APPROVED:
+
+            return Response(
+                {
+                    "detail": (
+                        "Only supervisor approved CAPAs "
+                        "can be reviewed by Plant Head."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if action == "APPROVE":
+
+            capa.approval_status = ApprovalStatus.APPROVED
+
+        else:
+
+            capa.approval_status = ApprovalStatus.REJECTED
+
+
+class CAPAApprovalAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+
+        if request.user.role != UserRole.SUPERVISOR:
+            return Response(
+                {
+                    "detail": "Only supervisors can approve CAPA."
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = CAPAApprovalSerializer(
+            data=request.data
+        )
+
+        serializer.is_valid(raise_exception=True)
+
+        capa = get_object_or_404(
+            CAPA,
+            pk=pk,
+        )
+
+        action = serializer.validated_data["action"]
+
+        if action == "APPROVE":
+
+            capa.approval_status = ApprovalStatus.APPROVED
+
+            capa.rejection_entry.status = RejectionStatus.APPROVED
+
+        else:
+
+            capa.approval_status = ApprovalStatus.REJECTED
+
+            capa.rejection_entry.status = RejectionStatus.REJECTED
+
+        capa.approved_by = request.user
+        capa.approved_at = timezone.now()
+
+        capa.save()
+        capa.rejection_entry.save()
+
+        return Response(
+            {
+                "message": f"CAPA {action.lower()}d successfully."
+            }
+        )
+

@@ -7,6 +7,8 @@ import { useState,useEffect } from "react";
 
 // import { createRejection } from "../../services/authService";
 
+import { getSystemSettings } from "../../services/authService";
+
 import {createRejection,getDepartments,getDefectTypes,getRejections,} from "../../services/authService";
 const Entry = () => {
 
@@ -81,10 +83,10 @@ const Entry = () => {
     }
 };
 
+    const [escalationLimit, setEscalationLimit] = useState(3);
+    // const ESCALATION_LIMIT = 3;
 
-    const ESCALATION_LIMIT = 3;
-
-    const isEscalated = rejection && Number(rejection) > ESCALATION_LIMIT;
+    const isEscalated = rejection && Number(rejection) > escalationLimit;
 
     const [alert, setAlert] = useState(null);
 
@@ -111,6 +113,13 @@ const Entry = () => {
     const departmentsData = await getDepartments();
     const defectTypesData = await getDefectTypes();
     // const rejectionsData = await getRejections();
+    const settingsData = await getSystemSettings();
+
+    console.log(settingsData);
+
+     setEscalationLimit(
+        Number(settingsData.escalation_limit)
+    );
 
     setDepartments(departmentsData);
     setDefectTypes(defectTypesData);
@@ -373,7 +382,7 @@ const Entry = () => {
             }}
         >
             {" "}
-            (limit 3%)
+            (limit {escalationLimit}%)
 
                     {isEscalated && (
             <Box

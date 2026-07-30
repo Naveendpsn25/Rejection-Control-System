@@ -12,7 +12,14 @@ class CAPAStatus(models.TextChoices):
 
 class ApprovalStatus(models.TextChoices):
     PENDING = "PENDING", "Pending"
+
+    SUPERVISOR_APPROVED = (
+        "SUPERVISOR_APPROVED",
+        "Supervisor Approved",
+    )
+
     APPROVED = "APPROVED", "Approved"
+
     REJECTED = "REJECTED", "Rejected"
 
 class CAPA(BaseModel):

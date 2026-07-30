@@ -304,3 +304,88 @@ export const approveRejectCAPA = async (id, action) => {
 };
 
 
+
+export const getSystemSettings = async () => {
+
+    const response = await fetch(
+        `${API_BASE_URL}/settings/`,
+        {
+            headers: {
+                Authorization: `Bearer ${getAccessToken()}`,
+            },
+        }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            result.detail || "Failed to fetch system settings."
+        );
+    }
+
+    return result;
+};
+
+
+export const updateSystemSettings = async (
+    escalationLimit
+) => {
+
+    const response = await fetch(
+        `${API_BASE_URL}/settings/`,
+        {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${getAccessToken()}`,
+            },
+            body: JSON.stringify({
+                escalation_limit: escalationLimit,
+            }),
+        }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            result.detail || "Failed to update settings."
+        );
+    }
+
+    return result;
+};
+
+
+
+export const registerUser = async (userData) => {
+
+    const response = await fetch(
+        `${API_BASE_URL}/accounts/register/`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(userData),
+        }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+
+        const message =
+        result.detail ||
+        result.email?.[0] ||
+        result.username?.[0] ||
+        result.confirm_password?.[0] ||
+        "Registration failed.";
+
+        throw new Error(message);
+    }
+
+    return result;
+
+};

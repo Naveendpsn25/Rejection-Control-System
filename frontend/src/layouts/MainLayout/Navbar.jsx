@@ -2,7 +2,7 @@ import { NavLink } from "react-router-dom";
 import { Box } from "@mui/material";
 import { useEffect, useState } from "react";
 import { getCAPACount } from "../../services/authService";
-
+import useAuthStore from "../../store/authStore";
 
 const links = [
   {
@@ -93,6 +93,8 @@ export default function Navbar() {
 
 }, []);
 
+const user = useAuthStore((state) => state.user);
+
 
   return (
     <Box
@@ -105,7 +107,23 @@ export default function Navbar() {
         borderBottom: "1px solid #ddd",
       }}
     >
-      {links.map((item) => (
+
+      {links
+        .filter((item) => {
+            if (user?.role === "PLANT_HEAD") {
+                return (
+                    item.name === "CAPA" ||
+                    item.name === "Settings"
+                );
+            }
+
+            if (item.name === "Settings") {
+                return false;
+            }
+
+            return true;
+        })
+        .map((item) => (
        <NavLink
     key={item.path}
     to={item.path}

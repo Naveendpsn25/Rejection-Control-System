@@ -210,7 +210,7 @@ const CAPA = () => {
         {!selectedCAPA ? (
             <>
 
-                <Typography
+                {/* <Typography
                     sx={{
                         color: "#5f6f85",
                         mb: 3,
@@ -219,7 +219,7 @@ const CAPA = () => {
                 >
                     A CAPA opens automatically when any rejection exceeds the
                     3% limit. Production must submit within 3 days.
-                </Typography>
+                </Typography> */}
 
                 <Paper
                     elevation={1}

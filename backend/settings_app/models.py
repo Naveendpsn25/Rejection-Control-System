@@ -12,10 +12,7 @@ class SystemSettings(BaseModel):
         help_text="Maximum allowed rejection percentage before CAPA is required."
     )
 
-    capa_submission_days = models.PositiveIntegerField(
-        default=3,
-        help_text="Number of days allowed to submit CAPA."
-    )
+    
 
     updated_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,

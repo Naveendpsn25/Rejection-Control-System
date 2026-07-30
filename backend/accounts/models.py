@@ -9,7 +9,7 @@ class UserRole(models.TextChoices):
     SUPERVISOR = "SUPERVISOR", "Supervisor"
     HOD = "HOD", "HOD"
     QUALITY_HEAD = "QUALITY_HEAD", "Quality Head"
-    PLANT_HEAD = "PLANT_HEAD", "Plant Head"
+    # PLANT_HEAD = "PLANT_HEAD", "Plant Head"
     STORES = "STORES", "Stores"
 
 

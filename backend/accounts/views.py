@@ -6,7 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from rest_framework.permissions import IsAuthenticated
 
-from .serializers import LoginSerializer,UserSerializer,LogoutSerializer
+from .serializers import LoginSerializer,UserSerializer,LogoutSerializer,RegisterSerializer
 
 
 class LoginView(APIView):
@@ -71,4 +71,32 @@ class LogoutView(APIView):
                 "message": "Logout successful."
             },
             status=status.HTTP_200_OK,
+        )
+
+
+class RegisterView(APIView):
+
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+
+        serializer = RegisterSerializer(
+            data=request.data
+        )
+
+        if serializer.is_valid():
+
+            serializer.save()
+
+            return Response(
+                {
+                    "message": "Registration successful."
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST,
         )

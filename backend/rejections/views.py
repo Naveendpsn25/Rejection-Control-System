@@ -22,6 +22,7 @@ from .serializers import RejectionEntrySerializer
 
 from accounts.models import UserRole
 
+from settings_app.models import SystemSettings
 
 from rest_framework.permissions import IsAuthenticated
 
@@ -66,7 +67,10 @@ class RejectionEntryListCreateAPIView(APIView):
                 slip_number=slip_number,
             )
 
-            if rejection.rejection_percentage > 3:
+            settings = SystemSettings.objects.first()
+            limit = settings.escalation_limit if settings else 3
+
+            if rejection.rejection_percentage > limit:
 
                 rejection.status = RejectionStatus.PENDING_SUPERVISOR
 

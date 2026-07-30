@@ -21,6 +21,7 @@ import {
 } from "../../utils/token";
 
 
+
 const Login = () => {
     const navigate = useNavigate();
 
@@ -135,19 +136,40 @@ const Login = () => {
                     fullWidth
                     size="large"
                     sx={{
-                        mt: 4,
-                        py: 1.5,
+                        mt: 1,
+                        // py: 1.5,
                         borderRadius: 2,
                         fontWeight: "bold",
                         textTransform: "none",
                         fontSize: "16px",
                     }}
                     disabled={loginMutation.isPending}
+                    
                 >
                     {loginMutation.isPending
                         ? "Signing In..."
                         : "Login"}
                 </Button>
+
+                <Typography
+                    textAlign="center"
+                    mt={5}
+                    fontSize={14}
+                    sx={{
+                        mt:2
+                    }}
+                >
+                    Don't have an account?{" "}
+
+                    <Button
+                        variant="text"
+                        size="small"
+                        onClick={() => navigate("/")}
+                    >
+                        Register
+                    </Button>
+
+                </Typography>
 
             </form>
 

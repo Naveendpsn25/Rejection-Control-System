@@ -8,7 +8,7 @@ import CAPA from "../pages/CAPA/CAPA";
 import Trends from "../pages/Trends/Trends";
 import Stores from "../pages/Stores/Stores";
 import Settings from "../pages/Settings/Settings";
-
+import Signup from "../pages/Signup/Signup";
 import ProtectedRoute from "./ProtectedRoute";
 import MainLayout from "../layouts/MainLayout/MainLayout";
 
@@ -18,7 +18,8 @@ const AppRoutes = () => {
             <Routes>
 
                 {/* Public Route */}
-                <Route path="/" element={<Login />} />
+                <Route path="/" element={<Signup />} />
+                <Route path="/login" element={<Login />} />
 
                 {/* Protected Routes */}
                 <Route
