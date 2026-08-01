@@ -57,9 +57,7 @@ class LogoutSerializer(serializers.Serializer):
 
 class RegisterSerializer(serializers.ModelSerializer):
 
-    confirm_password = serializers.CharField(
-        write_only=True
-    )
+    confirm_password = serializers.CharField(write_only=True)
 
     class Meta:
 
@@ -83,30 +81,18 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
 
-        if (
-            attrs["password"]
-            != attrs["confirm_password"]
-        ):
+        if (attrs["password"]!= attrs["confirm_password"]):
 
             raise serializers.ValidationError(
                 {
-                    "confirm_password":
-                    "Passwords do not match."
+                    "confirm_password":"Passwords do not match."
                 }
             )
 
-        if User.objects.filter(
-            username=attrs["username"]
-        ).exists():
+        if User.objects.filter(username=attrs["username"]).exists():
+            raise serializers.ValidationError({"username": "Username already exists."})
 
-            raise serializers.ValidationError({
-                "username": "Username already exists."
-            })
-
-        if User.objects.filter(
-            email=attrs["email"]
-        ).exists():
-
+        if User.objects.filter(email=attrs["email"]).exists():
             raise serializers.ValidationError({
                 "email": "A user with this email already exists."
             })
