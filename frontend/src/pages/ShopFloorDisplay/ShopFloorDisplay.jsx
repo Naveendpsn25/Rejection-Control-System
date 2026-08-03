@@ -127,7 +127,7 @@ const ShopFloorDisplay = () => {
                     gridTemplateColumns: {
                         xs: "1fr",
                         sm: "repeat(2, 1fr)",
-                        lg: "repeat(5, 1fr)",
+                        lg: "repeat(6, 1fr)",
                     },
                     gap: 3,
                     mb: 4,
@@ -148,7 +148,14 @@ const ShopFloorDisplay = () => {
                     {
                         title: "Rejection %",
                         value: `${summary?.rejection_percentage ?? 0}%`,
-                        color: "#F59E0B",
+                        color: summary?.is_escalated
+                            ? "#EF4444"
+                            : "#F59E0B",
+                    },
+                    {
+                        title: "Escalation Limit",
+                        value: `${summary?.escalation_limit ?? 0}%`,
+                        color: "#8B5CF6",
                     },
                     {
                         title: "Pending Approvals",

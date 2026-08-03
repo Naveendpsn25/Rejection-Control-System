@@ -26,7 +26,7 @@ class LoginSerializer(serializers.Serializer):
 
 
 from .models import User
-
+# This serializer is used to send user information back to the frontend.
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -52,7 +52,7 @@ class LogoutSerializer(serializers.Serializer):
 
     def save(self):
         token = RefreshToken(self.refresh_token)
-        token.blacklist()
+        token.blacklist() # After that, it can't be used to generate new access tokens
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -73,6 +73,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             "role",
         ]
 
+        # The password can be submitted but will never appear in API responses.
         extra_kwargs = {
             "password": {
                 "write_only": True

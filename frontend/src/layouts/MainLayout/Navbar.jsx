@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { Box } from "@mui/material";
 import { useEffect, useState } from "react";
+
 import { getCAPACount } from "../../services/authService";
 import useAuthStore from "../../store/authStore";
 
@@ -38,63 +39,67 @@ const links = [
 export default function Navbar() {
   const [capaCount, setCapaCount] = useState(0);
 
+  const user = useAuthStore((state) => state.user);
+
   const loadCount = async () => {
-
     try {
-
-        const data = await getCAPACount();
-
-        setCapaCount(data.count);
-
+      const data = await getCAPACount();
+      setCapaCount(data.count);
     } catch (error) {
-
-        console.error(error);
-
+      console.error(error);
     }
-
-};
-
-
+  };
 
   useEffect(() => {
+    let isComponentMounted = true;
 
-    const initialize = async () => {
-
-        await loadCount();
-
-    };
-
-    initialize();
-
-}, []);
-
-
-  useEffect(() => {
-
-    const refresh = () => {
-
-        loadCount();
-
-    };
-
-    window.addEventListener(
-        "capaUpdated",
-        refresh
-    );
+    getCAPACount()
+      .then((data) => {
+        if (isComponentMounted) {
+          setCapaCount(data.count);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
 
     return () => {
+      isComponentMounted = false;
+    };
+  }, []);
 
-        window.removeEventListener(
-            "capaUpdated",
-            refresh
-        );
 
+  useEffect(() => {
+    const refresh = () => {
+      loadCount();
     };
 
-}, []);
+    window.addEventListener("capaUpdated", refresh);
 
-const user = useAuthStore((state) => state.user);
+    return () => {
+      window.removeEventListener("capaUpdated", refresh);
+    };
+  }, []);
 
+  const visibleLinks = links.filter((item) => {
+    /*
+      Settings is visible only to Supervisor.
+      The backend also enforces this permission, so manually entering
+      /settings in the URL cannot allow another role to save changes.
+    */
+    if (item.name === "Settings") {
+      return user?.role === "SUPERVISOR";
+    }
+
+    /*
+      Retains the existing restricted Plant Head navigation.
+    */
+    if (user?.role === "PLANT_HEAD") {
+      return item.name === "CAPA";
+    }
+
+    return true;
+  });
 
   return (
     <Box
@@ -107,75 +112,53 @@ const user = useAuthStore((state) => state.user);
         borderBottom: "1px solid #ddd",
       }}
     >
-
-      {links
-        .filter((item) => {
-            if (user?.role === "PLANT_HEAD") {
-                return (
-                    item.name === "CAPA" ||
-                    item.name === "Settings"
-                );
-            }
-
-            if (item.name === "Settings") {
-                return false;
-            }
-
-            return true;
-        })
-        .map((item) => (
-       <NavLink
-    key={item.path}
-    to={item.path}
-    style={({ isActive }) => ({
-        textDecoration: "none",
-        color: isActive ? "#111" : "#5d6875",
-        display: "flex",
-        alignItems: "center",
-        height: "100%",
-        padding: "0 16px",
-        fontWeight: 600,
-        borderBottom: isActive
-            ? "3px solid #d84315"
-            : "3px solid transparent",
-    })}
->
-
-    <Box
-        sx={{
+      {visibleLinks.map((item) => (
+        <NavLink
+          key={item.path}
+          to={item.path}
+          style={({ isActive }) => ({
+            textDecoration: "none",
+            color: isActive ? "#111" : "#5d6875",
             display: "flex",
             alignItems: "center",
-            gap: 0.8,
-        }}
-    >
+            height: "100%",
+            padding: "0 16px",
+            fontWeight: 600,
+            borderBottom: isActive
+              ? "3px solid #d84315"
+              : "3px solid transparent",
+          })}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0.8,
+            }}
+          >
+            <span>{item.name}</span>
 
-        <span>{item.name}</span>
-
-        {item.name === "CAPA" && capaCount > 0 && (
-
-            <Box
+            {item.name === "CAPA" && capaCount > 0 && (
+              <Box
                 sx={{
-                    minWidth: 20,
-                    height: 20,
-                    px: 0.8,
-                    bgcolor: "#c0392b",
-                    color: "#fff",
-                    borderRadius: "10px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 11,
-                    fontWeight: 700,
+                  minWidth: 20,
+                  height: 20,
+                  px: 0.8,
+                  bgcolor: "#c0392b",
+                  color: "#fff",
+                  borderRadius: "10px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 11,
+                  fontWeight: 700,
                 }}
-            >
+              >
                 {capaCount}
-            </Box>
-
-        )}
-
-    </Box>
-
-</NavLink>
+              </Box>
+            )}
+          </Box>
+        </NavLink>
       ))}
     </Box>
   );

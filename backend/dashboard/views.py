@@ -12,7 +12,7 @@ from capa.models import ApprovalStatus
 from rejections.models import RejectionEntry
 from capa.models import CAPA, CAPAStatus
 from rejections.models import RejectionStatus
-
+from settings_app.models import SystemSettings
 from django.db.models.functions import TruncMinute
 
 class DashboardSummaryAPIView(APIView):
@@ -92,11 +92,16 @@ class DashboardSummaryAPIView(APIView):
             approval_status=ApprovalStatus.REJECTED
         ).count()
 
-        
+        settings, _ = SystemSettings.objects.get_or_create()
+        escalation_limit = settings.escalation_limit
+
         data = {
             "today_produced": today_produced,
             "today_rejected": today_rejected,
             "rejection_percentage": rejection_percentage,
+
+            "escalation_limit": float(escalation_limit),
+            "is_escalated": rejection_percentage > float(escalation_limit),
 
             "pending_supervisor": pending_supervisor,
             "supervisor_approvals": supervisor_approvals,

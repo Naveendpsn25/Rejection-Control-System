@@ -2,10 +2,12 @@ from rest_framework import serializers
 
 
 class DashboardSummarySerializer(serializers.Serializer):
-
     today_produced = serializers.IntegerField()
     today_rejected = serializers.IntegerField()
     rejection_percentage = serializers.FloatField()
+
+    escalation_limit = serializers.FloatField()
+    is_escalated = serializers.BooleanField()
 
     pending_supervisor = serializers.IntegerField()
     supervisor_approvals = serializers.IntegerField()

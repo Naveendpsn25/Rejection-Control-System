@@ -201,15 +201,15 @@ const Entry = () => {
           {/* Date */}
           <Grid size={{ xs: 12, md: 2 }}>
            <input
-    type="text"
-    placeholder="DD-MM-YYYY"
-    value={formData.date}
-    onChange={(e) =>
-        setFormData({
-            ...formData,
-            date: e.target.value,
-        })
-    }
+                type="text"
+                placeholder="DD-MM-YYYY"
+                value={formData.date}
+                onChange={(e) =>
+                    setFormData({
+                        ...formData,
+                        date: e.target.value,
+                    })
+                }
     style={{
         width: "100%",
         height: "56px",
@@ -222,6 +222,8 @@ const Entry = () => {
     }}
 />
           </Grid>
+
+       
 
           {/* Department */}
           <Grid size={{ xs: 12, md: 2 }}>
@@ -400,7 +402,7 @@ const Entry = () => {
                     textTransform: "uppercase",
                 }}
             >
-                WILL ESCALATE TO PLANT HEAD + CAPA OPENS
+                WILL ESCALATE — CAPA OPENS
             </Box>
 )}
         </span>
@@ -494,7 +496,7 @@ const Entry = () => {
                                     sx={{
                                         fontWeight: 700,
                                         color:
-                                            Number(entry.rejection_percentage) > 3
+                                            Number(entry.rejection_percentage) > escalationLimit
                                                 ? "#d32f2f"
                                                 : "#2e7d32",
                                     }}

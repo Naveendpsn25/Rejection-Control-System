@@ -20,8 +20,8 @@ export const login = async (data) => {
     setAccessToken(result.access);
     setRefreshToken(result.refresh);
 
-    console.log("Access Token:", localStorage.getItem("access"));
-    console.log("Refresh Token:", localStorage.getItem("refresh"));
+    // console.log("Access Token:", localStorage.getItem("access"));
+    // console.log("Refresh Token:", localStorage.getItem("refresh"));
 
     if (!response.ok) {
         throw new Error(result.detail || "Login failed");

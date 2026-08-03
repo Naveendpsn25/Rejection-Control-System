@@ -17,11 +17,13 @@ const useAuthStore = create((set) => ({
             isAuthenticated: false,
         }),
 
+    // Used when the app starts again.
     restoreUser: (user) =>
         set({
             user,
             isAuthenticated: true,
         }),
+
 
     setLoading: (loading) =>
         set({

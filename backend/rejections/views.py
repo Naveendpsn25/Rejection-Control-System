@@ -1,49 +1,49 @@
-from urllib import request
-
-from rest_framework import status
-from rest_framework.generics import ListCreateAPIView
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-
-from .models import RejectionEntry,RejectionStatus
-from .serializers import RejectionEntrySerializer
-
 from datetime import datetime, timedelta
 
 from django.utils import timezone
 
-from capa.models import CAPA
-
 from rest_framework import status
+from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .serializers import RejectionEntrySerializer
-
 from accounts.models import UserRole
-
+from capa.models import CAPA
 from settings_app.models import SystemSettings
 
-from rest_framework.permissions import IsAuthenticated
-
-from datetime import datetime
+from .models import (
+    Department,
+    DefectType,
+    Operation,
+    Part,
+    RejectionEntry,
+    RejectionStatus,
+    Shift,
+)
+from .serializers import (
+    DefectTypeSerializer,
+    DepartmentSerializer,
+    OperationSerializer,
+    PartSerializer,
+    RejectionEntrySerializer,
+    ShiftSerializer,
+)
 
 
 class RejectionEntryListCreateAPIView(APIView):
-
     permission_classes = [IsAuthenticated]
 
-
     def get(self, request):
-
+        """
+        Operators see only their own entries.
+        Other authenticated roles can see all entries.
+        """
         if request.user.role == UserRole.OPERATOR:
-
             queryset = RejectionEntry.objects.filter(
                 created_by=request.user
             ).order_by("-created_at")
-
         else:
-
             queryset = RejectionEntry.objects.all().order_by(
                 "-created_at"
             )
@@ -54,94 +54,96 @@ class RejectionEntryListCreateAPIView(APIView):
         )
 
         return Response(serializer.data)
-    
 
     def post(self, request):
-        slip_number = f"RS-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        """
+        Creates a rejection entry and checks it against the Supervisor's
+        globally configured escalation limit.
 
-        serializer = RejectionEntrySerializer(data= request.data)
+        If rejection percentage is above that limit, a CAPA is created.
+        """
+        slip_number = (
+            f"RS-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        )
 
-        if serializer.is_valid():
-            rejection = serializer.save(
-                created_by=request.user,
-                slip_number=slip_number,
+        serializer = RejectionEntrySerializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-            settings = SystemSettings.objects.first()
-            limit = settings.escalation_limit if settings else 3
+        rejection = serializer.save(
+            created_by=request.user,
+            slip_number=slip_number,
+        )
 
-            if rejection.rejection_percentage > limit:
+        # Uses the one global setting. Creates it with default 3.00 if absent.
+        system_settings, _ = SystemSettings.objects.get_or_create()
+        escalation_limit = system_settings.escalation_limit
 
-                rejection.status = RejectionStatus.PENDING_SUPERVISOR
+        # Every created entry awaits Supervisor review.
+        rejection.status = RejectionStatus.PENDING_SUPERVISOR
+        rejection.save()
 
-            else:
+        is_escalated = (
+            rejection.rejection_percentage > escalation_limit
+        )
 
-                rejection.status = RejectionStatus.PENDING_SUPERVISOR
-
-            rejection.save()
-
-            if rejection.rejection_percentage > 3:
-
-                CAPA.objects.create(
-                    title=f"CAPA - {rejection.part_number}",
-                    rejection_entry=rejection,
-                    assigned_to=request.user,
-
-                    root_cause="",
-                    corrective_action="",
-                    preventive_action="",
-
-                    target_date=timezone.now().date() + timedelta(days=3),
-                )
-
-                return Response(
-                    {
-                        "success": True,
-                        "severity": "error",
-                        "message": "Entry saved successfully. CAPA opened and approval process started because rejection exceeded the 3% limit.",
-                        "data": serializer.data,
-                    },
-                    status=status.HTTP_201_CREATED,
-                )
+        if is_escalated:
+            CAPA.objects.create(
+                title=f"CAPA - {rejection.part_number}",
+                rejection_entry=rejection,
+                assigned_to=request.user,
+                root_cause="",
+                corrective_action="",
+                preventive_action="",
+                target_date=(
+                    timezone.now().date() + timedelta(days=3)
+                ),
+            )
 
             return Response(
                 {
                     "success": True,
-                    "severity": "success",
-                    "message": "Entry saved successfully.",
-                    "data": serializer.data,
+                    "severity": "error",
+                    "message": (
+                        "Entry saved successfully. CAPA opened because "
+                        f"rejection percentage exceeded the configured "
+                        f"{escalation_limit}% escalation limit."
+                    ),
+                    "data": RejectionEntrySerializer(
+                        rejection
+                    ).data,
                 },
                 status=status.HTTP_201_CREATED,
             )
 
         return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST,
+            {
+                "success": True,
+                "severity": "success",
+                "message": (
+                    "Entry saved successfully. Rejection percentage is "
+                    f"within the configured {escalation_limit}% "
+                    "escalation limit."
+                ),
+                "data": RejectionEntrySerializer(rejection).data,
+            },
+            status=status.HTTP_201_CREATED,
         )
 
-from rest_framework.generics import RetrieveUpdateDestroyAPIView
-from rest_framework.permissions import AllowAny
 
 class RejectionEntryRetrieveUpdateDestroyAPIView(
     RetrieveUpdateDestroyAPIView
 ):
-
     queryset = RejectionEntry.objects.all()
-
     serializer_class = RejectionEntrySerializer
-
     permission_classes = [AllowAny]
 
 
-
-from rest_framework.generics import ListAPIView
-
-from .models import Department
-from .serializers import DepartmentSerializer
-
-from rest_framework.permissions import AllowAny
 class DepartmentListAPIView(ListAPIView):
-
     permission_classes = [AllowAny]
 
     queryset = Department.objects.filter(
@@ -151,12 +153,7 @@ class DepartmentListAPIView(ListAPIView):
     serializer_class = DepartmentSerializer
 
 
-from .models import Shift
-from .serializers import ShiftSerializer
-
-
 class ShiftListAPIView(ListAPIView):
-
     queryset = Shift.objects.filter(
         is_active=True,
     ).order_by("shift_code")
@@ -164,13 +161,7 @@ class ShiftListAPIView(ListAPIView):
     serializer_class = ShiftSerializer
 
 
-
-from .models import Part
-from .serializers import PartSerializer
-
-
 class PartListAPIView(ListAPIView):
-
     queryset = Part.objects.filter(
         is_active=True,
     ).order_by("part_number")
@@ -178,12 +169,7 @@ class PartListAPIView(ListAPIView):
     serializer_class = PartSerializer
 
 
-from .models import Operation
-from .serializers import OperationSerializer
-
-
 class OperationListAPIView(ListAPIView):
-
     queryset = Operation.objects.filter(
         is_active=True,
     ).order_by("operation_name")
@@ -191,12 +177,7 @@ class OperationListAPIView(ListAPIView):
     serializer_class = OperationSerializer
 
 
-from .models import DefectType
-from .serializers import DefectTypeSerializer
-
-
 class DefectTypeListAPIView(ListAPIView):
-
     permission_classes = [AllowAny]
 
     queryset = DefectType.objects.filter(
